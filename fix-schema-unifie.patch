@@ -1,0 +1,259 @@
+diff --git a/app.py b/app.py
+index 5e7424a..f82fb78 100644
+--- a/app.py
++++ b/app.py
+@@ -172,9 +172,6 @@ print(f"MQ : {len(valid_mq)} · ACT : {len(valid_act)} · "
+       f"Rallies : {len(rallies)}")
+ print("Cache Brent OK")
+ 
+-# ══════════════════════════════════════════════════════════════════════════════
+-# COLONNES DYNAMIQUES
+-# ══════════════════════════════════════════════════════════════════════════════
+ # ══════════════════════════════════════════════════════════════════════════════
+ # COLONNES DYNAMIQUES — schéma unifié : identiques pour toutes les sources
+ # ══════════════════════════════════════════════════════════════════════════════
+@@ -238,29 +235,36 @@ APP_DATA = {
+     'rdt_b_defis':      rdt_b_defis,
+     'vol_b_defis':      vol_b_defis,
+ 
+-    # ── Colonnes ACT ──────────────────────────────────────────────────────────
+-    'col_score_act':    col_score_act,
+-    'col_secteur_act':  col_secteur_act,
++    # ── Colonnes — schéma unifié : identiques pour toutes les sources ──────────
++    # (gardées avec ces clés pour compat avec le code existant des pages,
++    #  qui lit data['col_score_act'], data['col_score_ca'], etc.)
++    'col_score_act':    COL_SCORE,
++    'col_secteur_act':  COL_SECTEUR,
++    'col_quintile_act': COL_QUINTILE,
++    'col_pct_act':      COL_PCT,
+     'col_narr_act':     col_narr_act,
+     'col_trend_act':    col_trend_act,
+ 
+-    # ── Colonnes CA ───────────────────────────────────────────────────────────
+-    'col_score_ca':     col_score_ca,
+-    'col_secteur_ca':   col_secteur_ca,
+-    'col_quintile_ca':  col_quintile_ca,
+-    'col_pct_ca':       col_pct_ca,
+-
+-    # ── Colonnes CP ───────────────────────────────────────────────────────────
+-    'col_score_cp':     col_score_cp,
+-    'col_secteur_cp':   col_secteur_cp,
+-    'col_quintile_cp':  col_quintile_cp,
+-    'col_pct_cp':       col_pct_cp,
+-
+-    # ── Colonnes DEFIS ────────────────────────────────────────────────────────
+-    'col_score_defis':    col_score_defis,
+-    'col_secteur_defis':  col_secteur_defis,
+-    'col_quintile_defis': col_quintile_defis,
+-    'col_pct_defis':      col_pct_defis,
++    'col_score_ca':     COL_SCORE,
++    'col_secteur_ca':   COL_SECTEUR,
++    'col_quintile_ca':  COL_QUINTILE,
++    'col_pct_ca':       COL_PCT,
++
++    'col_score_cp':     COL_SCORE,
++    'col_secteur_cp':   COL_SECTEUR,
++    'col_quintile_cp':  COL_QUINTILE,
++    'col_pct_cp':       COL_PCT,
++
++    'col_score_defis':    COL_SCORE,
++    'col_secteur_defis':  COL_SECTEUR,
++    'col_quintile_defis': COL_QUINTILE,
++    'col_pct_defis':      COL_PCT,
++
++    'col_score':    COL_SCORE,
++    'col_secteur':  COL_SECTEUR,
++    'col_quintile': COL_QUINTILE,
++    'col_pct':      COL_PCT,
++    'col_company':  COL_COMPANY,
+ }
+ 
+ 
+@@ -637,32 +641,32 @@ def debug():
+     lines.append(f"CA shape : {df_ca.shape}")
+     lines.append(f"CP shape : {df_cp.shape}")
+     lines.append(f"DEFIS shape : {df_defis.shape if df_defis is not None else 'None'}")
+-    lines.append(f"CA Quintile_CA sample : {valid_ca['Quintile_CA'].dropna().head(5).tolist() if 'Quintile_CA' in valid_ca.columns else 'ABSENT'}")
+-    lines.append(f"DEFIS Quintile_DEFIS sample : {valid_defis['Quintile_DEFIS'].dropna().head(5).tolist() if 'Quintile_DEFIS' in valid_defis.columns else 'ABSENT'}")
+-    lines.append(f"CP Quintile_cp sample : {valid_cp['Quintile_cp'].dropna().head(5).tolist() if 'Quintile_cp' in valid_cp.columns else 'ABSENT'}")
+-    lines.append(f"CA Score_global_CA notna : {df_ca['Score_global_CA'].notna().sum()}")
+-    lines.append(f"CA Score_global_CA sample : {df_ca['Score_global_CA'].dropna().head(5).tolist()}")
+-    lines.append(f"CA Quintile_CA unique brut : {df_ca['Quintile_CA'].unique().tolist()}")
+-    if df_defis is not None and 'Score_global_DEFIS' in df_defis.columns:
+-        lines.append(f"DEFIS Score_global_DEFIS notna : {df_defis['Score_global_DEFIS'].notna().sum()}")
+-        lines.append(f"DEFIS Score_global_DEFIS sample : {df_defis['Score_global_DEFIS'].dropna().head(5).tolist()}")
+-        lines.append(f"DEFIS Quintile_DEFIS unique brut : {df_defis['Quintile_DEFIS'].unique().tolist()}")
++    lines.append(f"CA quintile sample : {valid_ca['quintile'].dropna().head(5).tolist() if 'quintile' in valid_ca.columns else 'ABSENT'}")
++    lines.append(f"DEFIS quintile sample : {valid_defis['quintile'].dropna().head(5).tolist() if 'quintile' in valid_defis.columns else 'ABSENT'}")
++    lines.append(f"CP quintile sample : {valid_cp['quintile'].dropna().head(5).tolist() if 'quintile' in valid_cp.columns else 'ABSENT'}")
++    lines.append(f"CA score notna : {df_ca['score'].notna().sum() if 'score' in df_ca.columns else 'ABSENT'}")
++    lines.append(f"CA score sample : {df_ca['score'].dropna().head(5).tolist() if 'score' in df_ca.columns else 'ABSENT'}")
++    lines.append(f"CA quintile unique brut : {df_ca['quintile'].unique().tolist() if 'quintile' in df_ca.columns else 'ABSENT'}")
++    if df_defis is not None and 'score' in df_defis.columns:
++        lines.append(f"DEFIS score notna : {df_defis['score'].notna().sum()}")
++        lines.append(f"DEFIS score sample : {df_defis['score'].dropna().head(5).tolist()}")
++        lines.append(f"DEFIS quintile unique brut : {df_defis['quintile'].unique().tolist()}")
+ 
+     from utils import prepare_ols_data, run_ols
+     try:
+         dep     = 'Rendement_2026'
+-        df_test = valid_mq[['Score_global_MQ', 'Macro_Secteur', dep,
+-                             'LogMarketCap', 'BookToMarket', 'Quintile_MQ']].dropna()
++        df_test = valid_mq[['score', 'macro_sector', dep,
++                             'LogMarketCap', 'BookToMarket', 'quintile']].dropna()
+         lines.append(f"OLS MQ df_test : {len(df_test)} lignes après dropna")
+-        df_p = prepare_ols_data(df_test, 'Score_global_MQ', 'Macro_Secteur')
+-        m    = run_ols(df_p, dep, 'Macro_Secteur', 'simple')
++        df_p = prepare_ols_data(df_test, 'score', 'macro_sector')
++        m    = run_ols(df_p, dep, 'macro_sector', 'simple')
+         lines.append(f"OLS MQ résultat : {m}")
+     except Exception:
+         lines.append(f"OLS MQ ERREUR : {traceback.format_exc()}")
+ 
+     try:
+         dep     = 'Rendement_2026'
+-        df_test = valid_act[[col_score_act, col_secteur_act, dep,
++        df_test = valid_act[['score', 'macro_sector', dep,
+                               'LogMarketCap', 'BookToMarket']].dropna()
+         lines.append(f"OLS ACT df_test : {len(df_test)} lignes après dropna")
+     except Exception:
+diff --git a/pages/brent.py b/pages/brent.py
+index 273659d..c3142b4 100644
+--- a/pages/brent.py
++++ b/pages/brent.py
+@@ -92,16 +92,22 @@ def register_callbacks(app, data: dict):
+     def update_brent(period, dep_choice, model_type, dataset):
+ 
+         # ── 1. Dataset ────────────────────────────────────────────────────────
+-        # CORRIGÉ : is_mq/is_act/is_ca définis EN PREMIER
+-        is_mq  = (dataset == 'mq')
+-        is_act = (dataset == 'act')
+-        is_ca  = (dataset == 'ca')
+-
+-        valid        = data['valid_mq']  if is_mq else (data['valid_act']  if is_act else data['valid_ca'])
+-        score_col    = 'Score_global_MQ' if is_mq else (data['col_score_act']   if is_act else data['col_score_ca'])
+-        secteur_col  = 'Macro_Secteur'   if is_mq else (data['col_secteur_act'] if is_act else data['col_secteur_ca'])
+-        quintile_col = 'Quintile_MQ'     if is_mq else ('Quintile_ACT'          if is_act else data['col_quintile_ca'])
+-        score_label  = 'Score MQ'        if is_mq else ('Score ACT'             if is_act else 'Score CA')
++        dataset = dataset or 'mq'
++        is_mq    = (dataset == 'mq')
++        is_act   = (dataset == 'act')
++        is_ca    = (dataset == 'ca')
++        is_cp    = (dataset == 'cp')
++        is_defis = (dataset == 'defis')
++
++        valid        = data.get(f'valid_{dataset}', data['valid_mq'])
++        # Schéma unifié : mêmes noms de colonnes pour toutes les sources
++        score_col    = 'score'
++        secteur_col  = 'macro_sector'
++        quintile_col = 'quintile'
++        score_label  = {
++            'mq': 'Score MQ', 'act': 'Score ACT', 'ca': 'Score CA',
++            'cp': 'Score CP', 'defis': 'Score DEFIS',
++        }.get(dataset, 'Score')
+ 
+         # ── 2. Métriques Brent — lues depuis le cache APP_DATA ────────────────
+         # CORRIGÉ : plus de calc_metriques_brent() ici, déjà calculé au démarrage
+diff --git a/pages/ols.py b/pages/ols.py
+index 07c3397..a301e87 100644
+--- a/pages/ols.py
++++ b/pages/ols.py
+@@ -107,14 +107,14 @@ def register_callbacks(app, data: dict):
+         dataset_config = {
+             'mq': dict(
+                 valid=data['valid_mq'], prices=data['prices_mq'],
+-                score_col='Score_global_MQ', secteur_col='Macro_Secteur',
+-                quintile_col='Quintile_MQ', pct_col='MQ_percentile',
++                score_col='score', secteur_col='macro_sector',
++                quintile_col='quintile', pct_col='score_percentile',
+                 total_panel=len(data['df_mq']),
+             ),
+             'act': dict(
+                 valid=data['valid_act'], prices=data['prices_act'],
+                 score_col=data['col_score_act'], secteur_col=data['col_secteur_act'],
+-                quintile_col='Quintile_ACT', pct_col='Score_percentile',
++                quintile_col='quintile', pct_col='score_percentile',
+                 total_panel=len(data['df_act']),
+             ),
+             'ca': dict(
+diff --git a/pages/societe.py b/pages/societe.py
+index 9a420f8..191f903 100644
+--- a/pages/societe.py
++++ b/pages/societe.py
+@@ -70,17 +70,19 @@ def register_callbacks(app, data: dict):
+         if not company_name:
+             return html.Div(), html.Div()
+ 
+-        is_mq  = (dataset == 'mq')
+-        is_act = (dataset == 'act')
+-        is_ca  = (dataset == 'ca')
+-        is_cp=(dataset == 'cp')
+-
+-        valid        = data['valid_mq']   if is_mq else (data['valid_act']  if is_act else data['valid_ca'])
+-        prices       = data['prices_mq']  if is_mq else (data['prices_act'] if is_act else data['prices_ca'])
+-        score_col    = 'Score_global_MQ'  if is_mq else (data['col_score_act']  if is_act else data['col_score_ca'])
+-        secteur_col  = 'Macro_Secteur'    if is_mq else (data['col_secteur_act'] if is_act else data['col_secteur_ca'])
+-        quintile_col = 'Quintile_MQ'      if is_mq else ('Quintile_ACT' if is_act else data['col_quintile_ca'])
+-        pct_col      = 'MQ_percentile'    if is_mq else ('Score_percentile' if is_act else data['col_pct_ca'])
++        is_mq    = (dataset == 'mq')
++        is_act   = (dataset == 'act')
++        is_ca    = (dataset == 'ca')
++        is_cp    = (dataset == 'cp')
++        is_defis = (dataset == 'defis')
++
++        valid        = data.get(f'valid_{dataset}',  data['valid_mq'])
++        prices       = data.get(f'prices_{dataset}', data['prices_mq'])
++        # Schéma unifié : mêmes noms de colonnes pour toutes les sources
++        score_col    = 'score'
++        secteur_col  = 'macro_sector'
++        quintile_col = 'quintile'
++        pct_col      = 'score_percentile'
+ 
+         row = valid[valid['Company Name'] == company_name]
+         if row.empty:
+@@ -97,34 +99,21 @@ def register_callbacks(app, data: dict):
+             if score_val <= 1 else f"{score_val:.1f}/100"
+         )
+ 
+-        if is_mq:
+-            extra_items = [
+-            ('Niveau',        row.get('Level',         'N/A')),
+-            ('Quintile',      row.get('Quintile_MQ',   'N/A')),
+-            ('Secteur',       row.get('Sector',        'N/A')),
+-            ('Macro-secteur', row.get('Macro_Secteur', 'N/A')),
+-            ('Géographie',    row.get('Geography',     'N/A')),
+-            ]
+-        elif is_act:
++        if is_act:
+             extra_items = [
+-            ('Narrative', row.get(data['col_narr_act'],  'N/A')),
+-            ('Trend',     row.get(data['col_trend_act'], 'N/A')),
+-            ('Secteur',   row.get(data['col_secteur_act'],'N/A')),
+-            ('Quintile',  row.get('Quintile_ACT',        'N/A')),
++            ('Narrative', row.get(data.get('col_narr_act'),  'N/A')),
++            ('Trend',     row.get(data.get('col_trend_act'), 'N/A')),
++            ('Secteur',   row.get('macro_sector', 'N/A')),
++            ('Quintile',  row.get('quintile',     'N/A')),
+             ]
+-        elif is_ca:  
++        else:
++            # mq, ca, cp, defis — schéma unifié
+             extra_items = [
+-            ('Secteur',  row.get(data['col_secteur_ca'], 'N/A')),
+-            ('Quintile', row.get(data['col_quintile_ca'],'N/A')),
+-            ('Score',    row.get(data['col_score_ca'],   'N/A')),
++            ('Secteur',  row.get('sector',        'N/A')),
++            ('Macro-secteur', row.get('macro_sector', 'N/A')),
++            ('Quintile', row.get('quintile',      'N/A')),
+             ]
+-        elif is_cp :  
+-            extra_items = [
+-            ('Secteur',  row.get(data['col_secteur_cp'], 'N/A')),
+-            ('Quintile', row.get(data['col_quintile_cp'],'N/A')),
+-            ('Score',    row.get(data['col_score_cp'],   'N/A')),
+-            ]
+-            
++
+         score_panel = html.Div(className='metric-card', children=[
+             html.Div(label, className='metric-label'),
+             html.Div(score_fmt,   className='metric-value', style={'color': fg}),
